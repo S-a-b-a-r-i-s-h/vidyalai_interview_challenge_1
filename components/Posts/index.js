@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import Post from './Post';
 import Container from '../common/Container';
-import useWindowWidth from '../hooks/useWindowWidth';
+import { useWindowWidthContext } from '../hooks/WindowWidthContext';
 
 const PostListContainer = styled.div(() => ({
   display: 'flex',
@@ -35,27 +35,49 @@ const LoadMoreButton = styled.button(() => ({
 export default function Posts() {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [start, setStart] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
-  const { isSmallerDevice } = useWindowWidth();
+  const { isSmallerDevice } = useWindowWidthContext();
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      const { data: posts } = await axios.get('/api/v1/posts', {
-        params: { start: 0, limit: isSmallerDevice ? 5 : 10 },
+  const fetchPost = async () => {
+    try {
+      setIsLoading(true);
+      const limit = isSmallerDevice ? 5 : 10;
+      const { data: fetchedPosts } = await axios.get('/api/v1/posts', {
+        params: { start, limit },
       });
-      setPosts(posts);
-    };
 
-    fetchPost();
-  }, [isSmallerDevice]);
+      if (fetchedPosts.length === 0) {
+        setHasMore(false);
+      } else {
+        const postsWithImages = await Promise.all(
+          fetchedPosts.map(async post => {
+            const { data: images } = await axios.get(`https://jsonplaceholder.typicode.com/albums/${post.id}/photos`);
+            return { ...post, images };
+          })
+        );
+
+        setPosts([...posts, ...postsWithImages]);
+        setStart(prevStart => prevStart + limit);
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleClick = () => {
-    setIsLoading(true);
-
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 3000);
+    fetchPost(); 
   };
+
+  useEffect(() => {
+    setStart(0);
+    setPosts([]);
+    setHasMore(true);
+    fetchPost(); 
+  }, []);
 
   return (
     <Container>
@@ -66,9 +88,11 @@ export default function Posts() {
       </PostListContainer>
 
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <LoadMoreButton onClick={handleClick} disabled={isLoading}>
-          {!isLoading ? 'Load More' : 'Loading...'}
-        </LoadMoreButton>
+        {hasMore && (
+          <LoadMoreButton onClick={handleClick} disabled={isLoading}>
+            {!isLoading ? 'Load More' : 'Loading...'}
+          </LoadMoreButton>
+        )}
       </div>
     </Container>
   );

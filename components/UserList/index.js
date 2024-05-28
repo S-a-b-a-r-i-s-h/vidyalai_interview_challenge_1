@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import styled from '@emotion/styled';
 import axios from 'axios';
+import useUserData from '../hooks/useUserData';
 
 const Table = styled.table(() => ({
   width: '100%',
@@ -26,115 +27,107 @@ const Table = styled.table(() => ({
   },
 }));
 
-const columnFields = [
-  { value: 'id', label: 'Id' },
-  { value: 'name', label: 'Name', enableSearch: true },
-  { value: 'email', label: 'Email', enableSearch: true },
-  { value: 'username', label: 'Username' },
-  { value: 'phone', label: 'Phone' },
-  { value: 'website', label: 'Website' },
-];
+// const columnFields = [
+//   { value: 'id', label: 'Id' },
+//   { value: 'name', label: 'Name', enableSearch: true },
+//   { value: 'email', label: 'Email', enableSearch: true },
+//   { value: 'username', label: 'Username' },
+//   { value: 'phone', label: 'Phone' },
+//   { value: 'website', label: 'Website' },
+// ];
 
-const withUserData = WrappedComponent =>
-  class WithUserData extends Component {
-    state = {
-      users: [],
-      filteredUsers: [],
-      searchName: '',
-      searchEmail: '',
-      sortColumn: columnFields[0].value,
-      sortDirection: 'asc',
-    };
+// const withUserData = WrappedComponent =>
+//   class WithUserData extends Component {
+//     state = {
+//       users: [],
+//       filteredUsers: [],
+//       searchName: '',
+//       searchEmail: '',
+//       sortColumn: columnFields[0].value,
+//       sortDirection: 'asc',
+//     };
 
-    async componentDidMount() {
-      const { data: users } = await axios.get('/api/v1/users');
+//     async componentDidMount() {
+//       const { data: users } = await axios.get('/api/v1/users');
 
-      this.setState({
-        users,
-        filteredUsers: users,
-      });
-    }
+//       this.setState({
+//         users,
+//         filteredUsers: users,
+//       });
+//     }
 
-    componentDidUpdate(prevProps, prevState) {
-      if (
-        prevState.searchName !== this.state.searchName ||
-        prevState.searchEmail !== this.state.searchEmail ||
-        prevState.users !== this.state.users ||
-        prevState.sortColumn !== this.state.sortColumn ||
-        prevState.sortDirection !== this.state.sortDirection
-      ) {
-        let filteredUsers = this.state.users.filter(
-          user =>
-            user.name
-              .toLowerCase()
-              .includes(this.state.searchName.toLowerCase()) &&
-            user.email
-              .toLowerCase()
-              .includes(this.state.searchEmail.toLowerCase()),
-        );
+//     componentDidUpdate(prevProps, prevState) {
+//       if (
+//         prevState.searchName !== this.state.searchName ||
+//         prevState.searchEmail !== this.state.searchEmail ||
+//         prevState.users !== this.state.users ||
+//         prevState.sortColumn !== this.state.sortColumn ||
+//         prevState.sortDirection !== this.state.sortDirection
+//       ) {
+//         let filteredUsers = this.state.users.filter(
+//           user =>
+//             user.name
+//               .toLowerCase()
+//               .includes(this.state.searchName.toLowerCase()) &&
+//             user.email
+//               .toLowerCase()
+//               .includes(this.state.searchEmail.toLowerCase()),
+//         );
 
-        if (this.state.sortColumn) {
-          filteredUsers.sort((a, b) => {
-            const x = a[this.state.sortColumn];
-            const y = b[this.state.sortColumn];
-            if (x < y) return this.state.sortDirection === 'asc' ? -1 : 1;
-            if (x > y) return this.state.sortDirection === 'asc' ? 1 : -1;
-            return 0;
-          });
-        }
+//         if (this.state.sortColumn) {
+//           filteredUsers.sort((a, b) => {
+//             const x = a[this.state.sortColumn];
+//             const y = b[this.state.sortColumn];
+//             if (x < y) return this.state.sortDirection === 'asc' ? -1 : 1;
+//             if (x > y) return this.state.sortDirection === 'asc' ? 1 : -1;
+//             return 0;
+//           });
+//         }
 
-        this.setState({ filteredUsers });
-      }
-    }
+//         this.setState({ filteredUsers });
+//       }
+//     }
 
-    handleOnSearch = event => {
-      let { name, value } = event.target;
+//     handleOnSearch = event => {
+//       let { name, value } = event.target;
 
-      if (name === 'name') {
-        name = 'searchName';
-      } else if (name === 'email') {
-        name = 'searchEmail';
-      } else {
-        throw new Error('Unknown search element');
-      }
+//       if (name === 'name') {
+//         name = 'searchName';
+//       } else if (name === 'email') {
+//         name = 'searchEmail';
+//       } else {
+//         throw new Error('Unknown search element');
+//       }
 
-      this.setState({ [name]: value });
-    };
+//       this.setState({ [name]: value });
+//     };
 
-    handleSort = column => {
-      if (this.state.sortColumn === column) {
-        this.setState(prevState => ({
-          sortDirection: prevState.sortDirection === 'asc' ? 'desc' : 'asc',
-        }));
-      } else {
-        this.setState({ sortColumn: column, sortDirection: 'asc' });
-      }
-    };
+//     handleSort = column => {
+//       if (this.state.sortColumn === column) {
+//         this.setState(prevState => ({
+//           sortDirection: prevState.sortDirection === 'asc' ? 'desc' : 'asc',
+//         }));
+//       } else {
+//         this.setState({ sortColumn: column, sortDirection: 'asc' });
+//       }
+//     };
 
-    render() {
-      return (
-        <WrappedComponent
-          users={this.state.filteredUsers}
-          columnFields={columnFields}
-          handleOnSearch={this.handleOnSearch}
-          handleSort={this.handleSort}
-          sortColumn={this.state.sortColumn}
-          sortDirection={this.state.sortDirection}
-        />
-      );
-    }
-  };
+//     render() {
+//       return (
+//         <WrappedComponent
+//           users={this.state.filteredUsers}
+//           columnFields={columnFields}
+//           handleOnSearch={this.handleOnSearch}
+//           handleSort={this.handleSort}
+//           sortColumn={this.state.sortColumn}
+//           sortDirection={this.state.sortDirection}
+//         />
+//       );
+//     }
+//   };
 
-class UserList extends Component {
-  render() {
-    const {
-      users,
-      columnFields,
-      handleOnSearch,
-      handleSort,
-      sortColumn,
-      sortDirection,
-    } = this.props;
+const UserList = () => {
+    const { users, columnFields, handleOnSearch, handleSort, sortColumn, sortDirection } = useUserData();
     return (
       <div>
         <Table>
@@ -184,6 +177,6 @@ class UserList extends Component {
       </div>
     );
   }
-}
 
-export default withUserData(UserList);
+
+export default UserList;
