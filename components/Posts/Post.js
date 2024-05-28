@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styled from '@emotion/styled';
+import { fetchUserById } from '../../server/users/users.service';
 
 const PostContainer = styled.div(() => ({
   width: '300px',
@@ -46,7 +47,8 @@ const Content = styled.div(() => ({
 
 const Button = styled.button(() => ({
   position: 'absolute',
-  bottom: 0,
+  top: '50%',
+  transform: 'translateY(-50%)',
   backgroundColor: 'rgba(255, 255, 255, 0.5)',
   border: 'none',
   color: '#000',
@@ -64,21 +66,33 @@ const NextButton = styled(Button)`
 `;
 
 const Post = ({ post }) => {
+  const [user, setUser] = useState(null);
   const carouselRef = useRef(null);
 
+  useEffect(() => {
+    async function fetchUser() {
+      const fetchedUser = await fetchUserById(post.userId);
+      setUser(fetchedUser);
+    }
+    fetchUser();
+  }, [post.userId]);
+  // console.log(user.name.split(' ')[0][0])
+
   const handleNextClick = () => {
+    const itemWidth = carouselRef.current.children[0].offsetWidth;
     if (carouselRef.current) {
       carouselRef.current.scrollBy({
-        left: 50,
+        left: itemWidth,
         behavior: 'smooth',
       });
     }
   };
 
   const handlePrevClick = () => {
+    const itemWidth = carouselRef.current.children[0].offsetWidth;
     if (carouselRef.current) {
       carouselRef.current.scrollBy({
-        left: -70,
+        left: -itemWidth,
         behavior: 'smooth',
       });
     }
@@ -86,7 +100,20 @@ const Post = ({ post }) => {
 
   return (
     <PostContainer>
+        {user && (
+          <div style={{ display: 'flex', alignItems: 'center'}}>
+            <div style={{ borderRadius: '50%', backgroundColor:'gray', width: '50px', height: '50px', margin:'5px',display:'flex', justifyContent:'center', alignItems:'center' }}>
+              <span>{user.name.split(' ')[0][0]}</span>
+              <span>{user.name.split(' ')[1][0]}</span>
+            </div>
+            <div style={{marginLeft: '5px'}}>
+              <h3>{user.name}</h3>
+              <p>{user.email}</p>
+            </div>
+          </div>
+        )}
       <CarouselContainer>
+      {console.log(post.userId)}
         <Carousel ref={carouselRef}>
           {post.images.map((image, index) => (
             <CarouselItem key={index}>

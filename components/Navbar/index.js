@@ -5,8 +5,9 @@ const Navbar = styled('nav')(() => ({
   backgroundColor: '#333',
   color: '#fff',
   width: '100%',
-  position: 'absolute',
+  position: 'fixed',
   top: 0,
+  padding: '10px 0',
   left: 0,
   zIndex: 1000,
 }));
@@ -31,7 +32,7 @@ const TopNavbar = () => {
   return (
     <div>
       <Navbar>
-        <ul style={{}}>
+        <ul style={{ position: 'sticky', top: 0}}>
           <ListItem>
             <Link href={'/'}>Home</Link>
           </ListItem>
